@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
+[assembly: log4net.Config.XmlConfigurator(ConfigFile = "Log4Net.config", Watch = true)]
 namespace VolumeManager
 {
     static class Program

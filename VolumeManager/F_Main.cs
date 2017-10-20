@@ -10,6 +10,8 @@ namespace VolumeManager
 {
     public partial class F_Main : C_BorderlessFormBase
     {
+        private static readonly log4net.ILog _LogHelper = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private const string FormTitle = "Volume Manager";
         private const string AutoSessionMarker = "AUTO";
         private const int UpdateInterval = 100;
@@ -37,6 +39,7 @@ namespace VolumeManager
         public F_Main()
         {
             InitializeComponent();
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => { _LogHelper.Error(string.Empty, (Exception)e.ExceptionObject); };
         }
 
         protected override void WndProc(ref Message m)
@@ -188,8 +191,10 @@ namespace VolumeManager
                 _LastVolume.Add(UC_AI_Left.Value + UC_AI_Right.Value);
                 SendUDP($"Vol#{UC_AI_Left.Value}/{UC_AI_Right.Value}/{UC_AI_Left.Value2}/{UC_AI_Right.Value2}");
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                _LogHelper.Error(string.Empty, ex);
+            }
         }
 
         private void CMS_Main_Opening(object sender, CancelEventArgs e)
@@ -223,7 +228,7 @@ namespace VolumeManager
                                     using (var _Session_ = _Sessions_[_j_])
                                     {
                                         var _Name_ = GetSessionName(_Session_);
-                                        if (!_Name_.StartsWith("PID:"))
+                                        if (!_Name_.StartsWith("PID:") && !_Name_.StartsWith("svchost"))
                                         {
                                             var _MISession_ = new ToolStripMenuItem(_Name_) { Tag = _Session_.GetSessionIdentifier };
                                             _MISession_.Click += new EventHandler(CMI_Click);
@@ -521,7 +526,7 @@ namespace VolumeManager
                                             return _Sessions_[_j_];
 
                                         // nimm die nächst beste session die grad was abspielt... wenn auto gewählt ist ;)
-                                        if ((SessionIdentifier == AutoSessionMarker) && (_DeviceCollection_[_i_].ID == _SelectedDevice) && (_Sessions_[_j_].AudioMeterInformation.MasterPeakValue != 0F))
+                                        if ((SessionIdentifier == AutoSessionMarker) && (_DeviceCollection_[_i_].ID == _SelectedDevice) && (_Sessions_[_j_].AudioMeterInformation.MasterPeakValue != 0F) && (!GetSessionName(_Sessions_[_j_]).StartsWith("svchost")))
                                             return _Sessions_[_j_];
 
                                         _Sessions_[_j_].Dispose();
@@ -597,7 +602,7 @@ namespace VolumeManager
                     }
                     catch
                     {
-                        return _pid_.ProcessName;
+                        return $"{_pid_.ProcessName} [{Session.GetProcessID}]";
                     }
                 }
                 catch
