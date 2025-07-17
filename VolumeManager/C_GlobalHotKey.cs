@@ -72,8 +72,10 @@ namespace VolumeManager
                             _singleCast_(this, e);
                     }
             }
-            catch
-            { }
+            catch(Exception ex)
+            {
+                Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         /// <summary>The ID for the hotkey</summary>

@@ -15,18 +15,18 @@ namespace VolumeManager
         {
             _ExcludedComponentes = new List<string>();
 
-            MouseDown += new MouseEventHandler(Form_MouseDown);
-            MouseUp += new MouseEventHandler(Form_MouseUp);
-            MouseMove += new MouseEventHandler(Form_MouseMove);
+            MouseDown += Form_MouseDown;
+            MouseUp += Form_MouseUp;
+            MouseMove += Form_MouseMove;
         }
 
         protected override void OnControlAdded(ControlEventArgs e)
         {
             if (_Draggable && (!_ExcludedComponentes.Contains(e.Control.Name)))
             {
-                e.Control.MouseDown += new MouseEventHandler(Form_MouseDown);
-                e.Control.MouseUp += new MouseEventHandler(Form_MouseUp);
-                e.Control.MouseMove += new MouseEventHandler(Form_MouseMove);
+                e.Control.MouseDown += Form_MouseDown;
+                e.Control.MouseUp += Form_MouseUp;
+                e.Control.MouseMove += Form_MouseMove;
             }
             base.OnControlAdded(e);
         }

@@ -31,8 +31,8 @@ namespace VolumeManager
         private Guid _ServerGuid;
 
         private bool _Send2UDP;
-        private bool _SessionMuted = false;
-        private bool _DeviceMuted = false;
+        private bool _SessionMuted;
+        private bool _DeviceMuted;
 
         private C_RingBuffer<float> _LastVolume;
 
@@ -228,10 +228,10 @@ namespace VolumeManager
                                     using (var _Session_ = _Sessions_[_j_])
                                     {
                                         var _Name_ = GetSessionName(_Session_);
-                                        if (!_Name_.StartsWith("PID:") && !_Name_.StartsWith("svchost"))
+                                        if (!_Name_.StartsWith("PID:", StringComparison.InvariantCultureIgnoreCase) && !_Name_.StartsWith("svchost", StringComparison.InvariantCultureIgnoreCase))
                                         {
                                             var _MISession_ = new ToolStripMenuItem(_Name_) { Tag = _Session_.GetSessionIdentifier };
-                                            _MISession_.Click += new EventHandler(CMI_Click);
+                                            _MISession_.Click += CMI_Click;
 
                                             if (((ActualDevice != null) && (ActualDevice.ID == _Device_.ID) && (ActualSession != null) &&
                                                 (ActualSession.GetSessionIdentifier == _Session_.GetSessionIdentifier)) || (_SelectedSession == _Session_.GetSessionIdentifier))
@@ -247,14 +247,17 @@ namespace VolumeManager
                                         }
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+                                }
                             }
 
                             _SessionList_.Sort(CompareMenuItem);
 
                             #region *** Auto entry ***
                             var _MIAuto_ = new ToolStripMenuItem("Auto") { Tag = AutoSessionMarker };
-                            _MIAuto_.Click += new EventHandler(CMI_Click);
+                            _MIAuto_.Click += CMI_Click;
 
                             if ((ActualDevice != null) && (ActualDevice.ID == _Device_.ID) && (_SelectedSession == AutoSessionMarker))
                                 _MIAuto_.Checked = true;
@@ -293,9 +296,8 @@ namespace VolumeManager
 
             var _MI_ = (ToolStripMenuItem)sender;
 
-            if (_MI_.Tag.GetType() == typeof(string))
+            if (_MI_.Tag is string _Tag_)
             {
-                var _Tag_ = (string)_MI_.Tag;
                 var _ParentTag_ = (string)_MI_.OwnerItem.Tag;
 
                 if (_Tag_ == AutoSessionMarker)
@@ -526,7 +528,7 @@ namespace VolumeManager
                                             return _Sessions_[_j_];
 
                                         // nimm die nächst beste session die grad was abspielt... wenn auto gewählt ist ;)
-                                        if ((SessionIdentifier == AutoSessionMarker) && (_DeviceCollection_[_i_].ID == _SelectedDevice) && (_Sessions_[_j_].AudioMeterInformation.MasterPeakValue != 0F) && (!GetSessionName(_Sessions_[_j_]).StartsWith("svchost")))
+                                        if ((SessionIdentifier == AutoSessionMarker) && (_DeviceCollection_[_i_].ID == _SelectedDevice) && (_Sessions_[_j_].AudioMeterInformation.MasterPeakValue != 0F) && (!GetSessionName(_Sessions_[_j_]).StartsWith("svchost", StringComparison.InvariantCultureIgnoreCase)))
                                             return _Sessions_[_j_];
 
                                         _Sessions_[_j_].Dispose();
@@ -702,7 +704,7 @@ namespace VolumeManager
 
         private int CompareMenuItem(ToolStripMenuItem x, ToolStripMenuItem y)
         {
-            return x.Text.CompareTo(y.Text);
+            return string.Compare(x.Text, y.Text, StringComparison.InvariantCultureIgnoreCase);
         }
 
         #region udp broadcast

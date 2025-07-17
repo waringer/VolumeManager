@@ -14,13 +14,13 @@ namespace VolumeManager
         private Color _BorderColor = Color.Black;
         private bool _BorderEnabled = true;
 
-        private int _StartAngel = 0;
+        private int _StartAngel;
         private int _StopAngel = 360;
-        private int _AngelOffset = 0;
+        private int _AngelOffset;
 
-        private float _ScaleMin = 0;
+        private float _ScaleMin;
         private float _ScaleMax = 10;
-        private bool _ScaleReverse = false;
+        private bool _ScaleReverse;
 
         private float _ScaleMainStep = 1;
         private Color _ScaleMainColor = Color.Black;
@@ -51,14 +51,14 @@ namespace VolumeManager
 
         private Color _StatMaxColor = Color.Black;
         private Color _StatMinColor = Color.Black;
-        private bool _StatMaxVisible = false;
-        private bool _StatMinVisible = false;
+        private bool _StatMaxVisible;
+        private bool _StatMinVisible;
 
-        private float _Value = 0;
-        private float _DestValue = 0;
+        private float _Value;
+        private float _DestValue;
         private float _MaxUpdateValue = 5;
 
-        private float _Value2 = 0;
+        private float _Value2;
 
         private PointF _BasePoint;
         private float _Radius;
@@ -71,8 +71,7 @@ namespace VolumeManager
         public UC_AnalogInstrument()
         {
             InitStyle();
-
-            _ScaleMainTextFont = Font;
+            if (Font != null) { _ScaleMainTextFont = Font; }
             _BasePoint = new PointF(0, 0);
 
             InitBackground();
@@ -93,15 +92,14 @@ namespace VolumeManager
         {
             RecalcSize();
             MakeBackGround();
-            Paint += new PaintEventHandler(UC_AnalogInstrument_Paint);
-            Resize += new EventHandler(UC_AnalogInstrument_Resize);
+            Paint += UC_AnalogInstrument_Paint;
+            Resize += UC_AnalogInstrument_Resize;
         }
 
         private void InitUpdateSmother()
         {
-            _UpdateSmother = new Timer();
-            _UpdateSmother.Interval = 50;
-            _UpdateSmother.Tick += new EventHandler(UpdateSmother_Tick);
+            _UpdateSmother = new Timer { Interval = 50 };
+            _UpdateSmother.Tick += UpdateSmother_Tick;
             _UpdateSmother.Start();
         }
 
@@ -258,10 +256,8 @@ namespace VolumeManager
         {
             var _bAngel_ = Grad2Bogen(Angel + _AngelOffset);
             var _Triangel_ = new PointF[3];
-            var _To_ = new PointF();
+            var _To_ = new PointF { X = _BasePoint.X + ((_Radius - _BorderWidth) * (float)Math.Cos(_bAngel_)), Y = _BasePoint.Y + ((_Radius - _BorderWidth) * (float)Math.Sin(_bAngel_)) };
 
-            _To_.X = _BasePoint.X + ((_Radius - _BorderWidth) * (float)Math.Cos(_bAngel_));
-            _To_.Y = _BasePoint.Y + ((_Radius - _BorderWidth) * (float)Math.Sin(_bAngel_));
             _Triangel_[0] = _To_;
 
             _bAngel_ = Grad2Bogen((Angel + 2.5F) + _AngelOffset);
@@ -483,10 +479,10 @@ namespace VolumeManager
             }
 
             //return back;
-            return rotateImage(_back_, _Angel);
+            return RotateImage(_back_, _Angel);
         }
 
-        private static Bitmap rotateImage(Bitmap b, float angle)
+        private static Bitmap RotateImage(Bitmap b, float angle)
         {
             //fix angle
             while (angle < 0)

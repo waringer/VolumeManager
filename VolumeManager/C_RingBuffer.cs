@@ -44,15 +44,9 @@ namespace VolumeManager
             }
         }
 
-        public bool Remove(T item)
-        {
-            throw new NotImplementedException();
-        }
+        public bool Remove(T item) => throw new NotImplementedException();
 
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
+        public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
 
         public void Clear()
         {

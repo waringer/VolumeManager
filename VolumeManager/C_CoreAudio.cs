@@ -1006,15 +1006,13 @@ namespace VolumeManager
         private IAudioMeterInformation _AudioMeterInformation;
         private E_EndpointHardwareSupport _HardwareSupport;
         private C_AudioMeterInformationChannels _Channels;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioMeterInformation(IAudioMeterInformation realInterface)
         {
-            int _HardwareSupp_;
-
             _AudioMeterInformation = realInterface;
-            Marshal.ThrowExceptionForHR(_AudioMeterInformation.QueryHardwareSupport(out _HardwareSupp_));
+            Marshal.ThrowExceptionForHR(_AudioMeterInformation.QueryHardwareSupport(out int _HardwareSupp_));
             _HardwareSupport = (E_EndpointHardwareSupport)_HardwareSupp_;
             _Channels = new C_AudioMeterInformationChannels(_AudioMeterInformation);
 
@@ -1073,8 +1071,7 @@ namespace VolumeManager
         {
             get
             {
-                float _result_;
-                Marshal.ThrowExceptionForHR(_AudioMeterInformation.GetPeakValue(out _result_));
+                Marshal.ThrowExceptionForHR(_AudioMeterInformation.GetPeakValue(out float _result_));
                 return _result_;
             }
         }
@@ -1083,7 +1080,7 @@ namespace VolumeManager
     public class C_AudioMeterInformationChannels : IDisposable
     {
         IAudioMeterInformation _AudioMeterInformation;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioMeterInformationChannels(IAudioMeterInformation parent)
@@ -1122,8 +1119,7 @@ namespace VolumeManager
         {
             get
             {
-                int _result_;
-                Marshal.ThrowExceptionForHR(_AudioMeterInformation.GetMeteringChannelCount(out _result_));
+                Marshal.ThrowExceptionForHR(_AudioMeterInformation.GetMeteringChannelCount(out int _result_));
                 return _result_;
             }
         }
@@ -1146,11 +1142,10 @@ namespace VolumeManager
     public class C_CPolicyConfigVistaClient : IDisposable
     {
         [ComImport, Guid("294935CE-F637-4E7C-A41B-AB255460B862")]
-        private class C_InternalCPolicyConfigVistaClient
-        { }
+        private class C_InternalCPolicyConfigVistaClient { }
 
         private IPolicyConfigVista _policyConfigVistaClient = new C_InternalCPolicyConfigVistaClient() as IPolicyConfigVista;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         ~C_CPolicyConfigVistaClient()
@@ -1202,17 +1197,16 @@ namespace VolumeManager
         private E_EndpointHardwareSupport _HardwareSupport;
         private C_AudioEndpointVolumeCallback _CallBack;
         public event EventHandler<C_AudioVolumeNotificationData> OnVolumeNotification;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndpointVolume(IAudioEndpointVolume realEndpointVolume)
         {
-            uint _HardwareSupp_;
 
             _AudioEndPointVolume = realEndpointVolume;
             _Channels = new C_AudioEndpointVolumeChannels(_AudioEndPointVolume);
             _StepInformation = new C_AudioEndpointVolumeStepInformation(_AudioEndPointVolume);
-            Marshal.ThrowExceptionForHR(_AudioEndPointVolume.QueryHardwareSupport(out _HardwareSupp_));
+            Marshal.ThrowExceptionForHR(_AudioEndPointVolume.QueryHardwareSupport(out uint _HardwareSupp_));
             _HardwareSupport = (E_EndpointHardwareSupport)_HardwareSupp_;
             _VolumeRange = new C_AudioEndPointVolumeVolumeRange(_AudioEndPointVolume);
             _CallBack = new C_AudioEndpointVolumeCallback(this);
@@ -1307,8 +1301,7 @@ namespace VolumeManager
         {
             get
             {
-                float result;
-                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMasterVolumeLevel(out result));
+                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMasterVolumeLevel(out float result));
                 return result;
             }
             set
@@ -1321,8 +1314,7 @@ namespace VolumeManager
         {
             get
             {
-                float result;
-                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMasterVolumeLevelScalar(out result));
+                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMasterVolumeLevelScalar(out float result));
                 return result;
             }
             set
@@ -1335,8 +1327,7 @@ namespace VolumeManager
         {
             get
             {
-                bool result;
-                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMute(out result));
+                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetMute(out bool result));
                 return result;
             }
             set
@@ -1364,24 +1355,25 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_AudioVolumeNotificationData> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, e });
                         else
                             _singleCast_(this, e);
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
     }
 
     public class C_AudioEndpointVolumeChannel : IDisposable
     {
-        private uint _Channel;
+        private readonly uint _Channel;
         private IAudioEndpointVolume _AudioEndpointVolume;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndpointVolumeChannel(IAudioEndpointVolume parent, int channel)
@@ -1421,8 +1413,7 @@ namespace VolumeManager
         {
             get
             {
-                float _result_;
-                Marshal.ThrowExceptionForHR(_AudioEndpointVolume.GetChannelVolumeLevel(_Channel, out _result_));
+                Marshal.ThrowExceptionForHR(_AudioEndpointVolume.GetChannelVolumeLevel(_Channel, out float _result_));
                 return _result_;
             }
             set
@@ -1435,8 +1426,7 @@ namespace VolumeManager
         {
             get
             {
-                float _result_;
-                Marshal.ThrowExceptionForHR(_AudioEndpointVolume.GetChannelVolumeLevelScalar(_Channel, out _result_));
+                Marshal.ThrowExceptionForHR(_AudioEndpointVolume.GetChannelVolumeLevelScalar(_Channel, out float _result_));
                 return _result_;
             }
             set
@@ -1450,7 +1440,7 @@ namespace VolumeManager
     {
         IAudioEndpointVolume _AudioEndPointVolume;
         C_AudioEndpointVolumeChannel[] _Channels;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndpointVolumeChannels(IAudioEndpointVolume parent)
@@ -1503,8 +1493,7 @@ namespace VolumeManager
         {
             get
             {
-                int result;
-                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetChannelCount(out result));
+                Marshal.ThrowExceptionForHR(_AudioEndPointVolume.GetChannelCount(out int result));
                 return result;
             }
         }
@@ -1521,8 +1510,8 @@ namespace VolumeManager
     public class C_AudioEndpointVolumeStepInformation : IDisposable
     {
         private uint _Step;
-        private uint _StepCount;
-        private volatile bool _IsDisposed = false;
+        private readonly uint _StepCount;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndpointVolumeStepInformation(IAudioEndpointVolume parent)
@@ -1572,10 +1561,10 @@ namespace VolumeManager
 
     public class C_AudioEndPointVolumeVolumeRange : IDisposable
     {
-        float _VolumeMindB;
-        float _VolumeMaxdB;
-        float _VolumeIncrementdB;
-        private volatile bool _IsDisposed = false;
+        private readonly float _VolumeMindB;
+        private readonly float _VolumeMaxdB;
+        private readonly float _VolumeIncrementdB;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndPointVolumeVolumeRange(IAudioEndpointVolume parent)
@@ -1637,8 +1626,8 @@ namespace VolumeManager
     // to show up in the public API. 
     internal class C_AudioEndpointVolumeCallback : IAudioEndpointVolumeCallback, IDisposable
     {
-        private C_AudioEndpointVolume _Parent;
-        private volatile bool _IsDisposed = false;
+        private readonly C_AudioEndpointVolume _Parent;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioEndpointVolumeCallback(C_AudioEndpointVolume parent)
@@ -1696,12 +1685,12 @@ namespace VolumeManager
 
     public class C_AudioVolumeNotificationData : EventArgs, IDisposable
     {
-        private Guid _EventContext;
-        private bool _Muted;
-        private float _MasterVolume;
-        private int _Channels;
-        private float[] _ChannelVolume;
-        private volatile bool _IsDisposed = false;
+        private readonly Guid _EventContext;
+        private readonly bool _Muted;
+        private readonly float _MasterVolume;
+        private readonly int _Channels;
+        private readonly float[] _ChannelVolume;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_AudioVolumeNotificationData(Guid eventContext, bool muted, float masterVolume, float[] channelVolume)
@@ -1786,7 +1775,7 @@ namespace VolumeManager
         private IAudioSessionManager2 _AudioSessionManager2;
         private C_SessionCollection _Sessions;
         private C_AudioSessionNotification _AudioSessionNotification;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioSessionManager2(IAudioSessionManager2 realAudioSessionManager2)
@@ -1851,24 +1840,24 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_SessionCreatedEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_SessionCreatedEventArgs(e) });
                         else
                             _singleCast_(this, new C_SessionCreatedEventArgs(e));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         public void RefreshSessions()
         {
             UnregisterNotifications();
 
-            IAudioSessionEnumerator _SessionEnum;
-            Marshal.ThrowExceptionForHR(_AudioSessionManager2.GetSessionEnumerator(out _SessionEnum));
+            Marshal.ThrowExceptionForHR(_AudioSessionManager2.GetSessionEnumerator(out IAudioSessionEnumerator _SessionEnum));
             _Sessions = new C_SessionCollection(_SessionEnum);
 
             _AudioSessionNotification = new C_AudioSessionNotification(this);
@@ -1915,7 +1904,7 @@ namespace VolumeManager
     public class C_SessionCreatedEventArgs : EventArgs, IDisposable
     {
         public IAudioSessionControl2 Session;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_SessionCreatedEventArgs(IAudioSessionControl2 newSession)
@@ -1949,8 +1938,8 @@ namespace VolumeManager
 
     public class C_SessionCollection : IDisposable
     {
-        IAudioSessionEnumerator _AudioSessionEnumerator;
-        private volatile bool _IsDisposed = false;
+        private IAudioSessionEnumerator _AudioSessionEnumerator;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_SessionCollection(IAudioSessionEnumerator realEnumerator)
@@ -1989,8 +1978,7 @@ namespace VolumeManager
         {
             get
             {
-                IAudioSessionControl2 _Result;
-                Marshal.ThrowExceptionForHR(_AudioSessionEnumerator.GetSession(index, out _Result));
+                Marshal.ThrowExceptionForHR(_AudioSessionEnumerator.GetSession(index, out IAudioSessionControl2 _Result));
                 return new C_AudioSessionControl2(_Result);
             }
         }
@@ -1999,8 +1987,7 @@ namespace VolumeManager
         {
             get
             {
-                int result;
-                Marshal.ThrowExceptionForHR(_AudioSessionEnumerator.GetCount(out result));
+                Marshal.ThrowExceptionForHR(_AudioSessionEnumerator.GetCount(out int result));
                 return result;
             }
         }
@@ -2008,11 +1995,11 @@ namespace VolumeManager
 
     public class C_AudioSessionControl2 : IDisposable
     {
-        IAudioSessionControl2 _AudioSessionControl2;
+        private IAudioSessionControl2 _AudioSessionControl2;
         internal C_AudioMeterInformation _AudioMeterInformation;
         internal C_SimpleAudioVolume _SimpleAudioVolume;
         private C_AudioSessionEvents _AudioSessionEvents;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region events
         public event EventHandler<C_StringEventArgs> OnDisplayNameChanged;
@@ -2026,11 +2013,8 @@ namespace VolumeManager
         internal C_AudioSessionControl2(IAudioSessionControl2 realAudioSessionControl2)
         {
             _AudioSessionControl2 = realAudioSessionControl2;
-
-            var _meters_ = _AudioSessionControl2 as IAudioMeterInformation;
-            var _volume_ = _AudioSessionControl2 as ISimpleAudioVolume;
-            if (_meters_ != null) _AudioMeterInformation = new C_AudioMeterInformation(_meters_);
-            if (_volume_ != null) _SimpleAudioVolume = new C_SimpleAudioVolume(_volume_);
+            if (_AudioSessionControl2 is IAudioMeterInformation _meters_) _AudioMeterInformation = new C_AudioMeterInformation(_meters_);
+            if (_AudioSessionControl2 is ISimpleAudioVolume _volume_) _SimpleAudioVolume = new C_SimpleAudioVolume(_volume_);
 
             _AudioSessionEvents = new C_AudioSessionEvents(this);
             Marshal.ThrowExceptionForHR(_AudioSessionControl2.RegisterAudioSessionNotification(_AudioSessionEvents));
@@ -2091,16 +2075,17 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_StringEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_StringEventArgs(e) });
                         else
                             _singleCast_(this, new C_StringEventArgs(e));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         internal void FireOnIconPathChanged([MarshalAs(UnmanagedType.LPWStr)] string e)
@@ -2112,16 +2097,17 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_StringEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_StringEventArgs(e) });
                         else
                             _singleCast_(this, new C_StringEventArgs(e));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         internal void FireSimpleVolumeChanged(float NewVolume, bool newMute)
@@ -2133,16 +2119,17 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_SimpleVolumeChangedEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_SimpleVolumeChangedEventArgs(NewVolume, newMute) });
                         else
                             _singleCast_(this, new C_SimpleVolumeChangedEventArgs(NewVolume, newMute));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         internal void FireChannelVolumeChanged(uint ChannelCount, IntPtr NewChannelVolumeArray, uint ChangedChannel)
@@ -2157,16 +2144,17 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_ChannelVolumeChangedEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_ChannelVolumeChangedEventArgs((int)ChannelCount, _volume_, (int)ChangedChannel) });
                         else
                             _singleCast_(this, new C_ChannelVolumeChangedEventArgs((int)ChannelCount, _volume_, (int)ChangedChannel));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         internal void FireStateChanged(E_AudioSessionState NewState)
@@ -2178,16 +2166,17 @@ namespace VolumeManager
                 {
                     foreach (EventHandler<C_StateChangedEventArgs> _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new C_StateChangedEventArgs(NewState) });
                         else
                             _singleCast_(this, new C_StateChangedEventArgs(NewState));
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         public C_AudioMeterInformation AudioMeterInformation
@@ -2210,8 +2199,7 @@ namespace VolumeManager
         {
             get
             {
-                E_AudioSessionState _res_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetState(out _res_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetState(out E_AudioSessionState _res_));
                 return _res_;
             }
         }
@@ -2220,8 +2208,7 @@ namespace VolumeManager
         {
             get
             {
-                string _str_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetDisplayName(out _str_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetDisplayName(out string _str_));
                 return _str_;
             }
         }
@@ -2230,8 +2217,7 @@ namespace VolumeManager
         {
             get
             {
-                string _str_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetIconPath(out _str_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetIconPath(out string _str_));
                 return _str_;
             }
         }
@@ -2240,8 +2226,7 @@ namespace VolumeManager
         {
             get
             {
-                string _str_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetSessionIdentifier(out _str_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetSessionIdentifier(out string _str_));
                 return _str_;
             }
         }
@@ -2250,8 +2235,7 @@ namespace VolumeManager
         {
             get
             {
-                string _str_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetSessionInstanceIdentifier(out _str_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetSessionInstanceIdentifier(out string _str_));
                 return _str_;
             }
         }
@@ -2260,8 +2244,7 @@ namespace VolumeManager
         {
             get
             {
-                uint _pid_;
-                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetProcessId(out _pid_));
+                Marshal.ThrowExceptionForHR(_AudioSessionControl2.GetProcessId(out uint _pid_));
                 return _pid_;
             }
         }
@@ -2278,7 +2261,7 @@ namespace VolumeManager
     public class C_StringEventArgs : EventArgs, IDisposable
     {
         public string Value;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_StringEventArgs(string Text)
@@ -2314,7 +2297,7 @@ namespace VolumeManager
     {
         public float Volume;
         public bool Mute;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_SimpleVolumeChangedEventArgs(float newVolume, bool newMute)
@@ -2352,7 +2335,7 @@ namespace VolumeManager
         public int ChannelCount;
         public float[] Volume;
         public int ChangedChannel;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_ChannelVolumeChangedEventArgs(int channelCount, float[] newVolume, int changedChannel)
@@ -2389,7 +2372,7 @@ namespace VolumeManager
     public class C_StateChangedEventArgs : EventArgs, IDisposable
     {
         public E_AudioSessionState State;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_StateChangedEventArgs(E_AudioSessionState newState)
@@ -2423,8 +2406,8 @@ namespace VolumeManager
 
     public class C_SimpleAudioVolume : IDisposable
     {
-        ISimpleAudioVolume _SimpleAudioVolume;
-        private volatile bool _IsDisposed = false;
+        private ISimpleAudioVolume _SimpleAudioVolume;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_SimpleAudioVolume(ISimpleAudioVolume realSimpleVolume)
@@ -2463,8 +2446,7 @@ namespace VolumeManager
         {
             get
             {
-                float _ret_;
-                Marshal.ThrowExceptionForHR(_SimpleAudioVolume.GetMasterVolume(out _ret_));
+                Marshal.ThrowExceptionForHR(_SimpleAudioVolume.GetMasterVolume(out float _ret_));
                 return _ret_;
             }
             set
@@ -2478,8 +2460,7 @@ namespace VolumeManager
         {
             get
             {
-                bool _ret_;
-                Marshal.ThrowExceptionForHR(_SimpleAudioVolume.GetMute(out _ret_));
+                Marshal.ThrowExceptionForHR(_SimpleAudioVolume.GetMute(out bool _ret_));
                 return _ret_;
             }
             set
@@ -2492,7 +2473,7 @@ namespace VolumeManager
     internal class C_AudioSessionEvents : IAudioSessionEvents, IDisposable
     {
         private C_AudioSessionControl2 _Parent;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioSessionEvents(C_AudioSessionControl2 parent)
@@ -2573,8 +2554,8 @@ namespace VolumeManager
 
     internal class C_AudioSessionNotification : IAudioSessionNotification, IDisposable
     {
-        private C_AudioSessionManager2 _Parent;
-        private volatile bool _IsDisposed = false;
+        private readonly C_AudioSessionManager2 _Parent;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioSessionNotification(C_AudioSessionManager2 parent)
@@ -2618,7 +2599,7 @@ namespace VolumeManager
     public class C_DeviceTopology : IDisposable
     {
         private IDeviceTopology _DeviceTopology;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_DeviceTopology(IDeviceTopology realInterface)
@@ -2657,16 +2638,14 @@ namespace VolumeManager
         {
             get
             {
-                var _count_ = 0;
-                Marshal.ThrowExceptionForHR(_DeviceTopology.GetConnectorCount(out _count_));
+                Marshal.ThrowExceptionForHR(_DeviceTopology.GetConnectorCount(out int _count_));
                 return _count_;
             }
         }
 
         public C_Connector GetConnector(int index)
         {
-            IConnector connector;
-            Marshal.ThrowExceptionForHR(_DeviceTopology.GetConnector(index, out connector));
+            Marshal.ThrowExceptionForHR(_DeviceTopology.GetConnector(index, out IConnector connector));
             return new C_Connector(connector);
         }
 
@@ -2674,23 +2653,20 @@ namespace VolumeManager
         {
             get
             {
-                var _count_ = 0;
-                Marshal.ThrowExceptionForHR(_DeviceTopology.GetSubunitCount(out _count_));
+                Marshal.ThrowExceptionForHR(_DeviceTopology.GetSubunitCount(out int _count_));
                 return _count_;
             }
         }
 
         public C_Subunit GetSubunit(int index)
         {
-            ISubunit _subUnit_;
-            Marshal.ThrowExceptionForHR(_DeviceTopology.GetSubunit(index, out _subUnit_));
+            Marshal.ThrowExceptionForHR(_DeviceTopology.GetSubunit(index, out ISubunit _subUnit_));
             return new C_Subunit(_subUnit_);
         }
 
         public C_Part GetPartById(int id)
         {
-            IPart _part_;
-            Marshal.ThrowExceptionForHR(_DeviceTopology.GetPartById(id, out _part_));
+            Marshal.ThrowExceptionForHR(_DeviceTopology.GetPartById(id, out IPart _part_));
             return new C_Part(_part_);
         }
 
@@ -2698,16 +2674,14 @@ namespace VolumeManager
         {
             get
             {
-                string _id_;
-                Marshal.ThrowExceptionForHR(_DeviceTopology.GetDeviceId(out _id_));
+                Marshal.ThrowExceptionForHR(_DeviceTopology.GetDeviceId(out string _id_));
                 return _id_;
             }
         }
 
         public C_PartsList GetSignalPath(C_Part from, C_Part to, bool rejectMixedPaths)
         {
-            IPartsList _partList_;
-            Marshal.ThrowExceptionForHR(_DeviceTopology.GetSignalPath((IPart)from, (IPart)to, rejectMixedPaths, out _partList_));
+            Marshal.ThrowExceptionForHR(_DeviceTopology.GetSignalPath((IPart)from, (IPart)to, rejectMixedPaths, out IPartsList _partList_));
             return new C_PartsList(_partList_);
         }
     }
@@ -2716,7 +2690,7 @@ namespace VolumeManager
     {
         private IConnector _Connector;
         private C_Part _Part;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_Connector(IConnector connector)
@@ -2762,8 +2736,7 @@ namespace VolumeManager
         {
             get
             {
-                E_ConnectorType _type_;
-                Marshal.ThrowExceptionForHR(_Connector.GetType(out _type_));
+                Marshal.ThrowExceptionForHR(_Connector.GetType(out E_ConnectorType _type_));
                 return _type_;
             }
         }
@@ -2772,8 +2745,7 @@ namespace VolumeManager
         {
             get
             {
-                E_DataFlow _flow_;
-                Marshal.ThrowExceptionForHR(_Connector.GetDataFlow(out _flow_));
+                Marshal.ThrowExceptionForHR(_Connector.GetDataFlow(out E_DataFlow _flow_));
                 return _flow_;
             }
         }
@@ -2792,8 +2764,7 @@ namespace VolumeManager
         {
             get
             {
-                bool _result_;
-                Marshal.ThrowExceptionForHR(_Connector.IsConnected(out _result_));
+                Marshal.ThrowExceptionForHR(_Connector.IsConnected(out bool _result_));
                 return _result_;
             }
         }
@@ -2802,8 +2773,7 @@ namespace VolumeManager
         {
             get
             {
-                IConnector _connectedTo_;
-                Marshal.ThrowExceptionForHR(_Connector.GetConnectedTo(out _connectedTo_));
+                Marshal.ThrowExceptionForHR(_Connector.GetConnectedTo(out IConnector _connectedTo_));
                 return new C_Connector(_connectedTo_);
             }
         }
@@ -2812,8 +2782,7 @@ namespace VolumeManager
         {
             get
             {
-                string _id_;
-                Marshal.ThrowExceptionForHR(_Connector.GetConnectorIdConnectedTo(out _id_));
+                Marshal.ThrowExceptionForHR(_Connector.GetConnectorIdConnectedTo(out string _id_));
                 return _id_;
             }
         }
@@ -2822,8 +2791,7 @@ namespace VolumeManager
         {
             get
             {
-                string _id_;
-                Marshal.ThrowExceptionForHR(_Connector.GetDeviceIdConnectedTo(out _id_));
+                Marshal.ThrowExceptionForHR(_Connector.GetDeviceIdConnectedTo(out string _id_));
                 return _id_;
             }
         }
@@ -2835,9 +2803,8 @@ namespace VolumeManager
                 if (_Part == null)
                 {
                     var _pUnk_ = Marshal.GetIUnknownForObject(_Connector);
-                    IntPtr _ppv_;
 
-                    Marshal.QueryInterface(_pUnk_, ref C_IIDs.IID_IPart, out _ppv_);
+                    Marshal.QueryInterface(_pUnk_, ref C_IIDs.IID_IPart, out IntPtr _ppv_);
                     if (_ppv_ != IntPtr.Zero)
                         _Part = new C_Part((IPart)Marshal.GetObjectForIUnknown(_ppv_));
                     else
@@ -2866,7 +2833,7 @@ namespace VolumeManager
 
         private C_PartsList partsListIncoming;
         private C_PartsList partsListOutgoing;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_Part(IPart part)
@@ -2900,37 +2867,37 @@ namespace VolumeManager
 
                     if (_AudioVolumeLevel != null)
                     {
-                        _AudioVolumeLevel.Dispose(); ;
+                        _AudioVolumeLevel.Dispose();
                         _AudioVolumeLevel = null;
                     }
 
                     if (_AudioMute != null)
                     {
-                        _AudioMute.Dispose(); ;
+                        _AudioMute.Dispose();
                         _AudioMute = null;
                     }
 
                     if (_AudioPeakMeter != null)
                     {
-                        _AudioPeakMeter.Dispose(); ;
+                        _AudioPeakMeter.Dispose();
                         _AudioPeakMeter = null;
                     }
 
                     if (_AudioLoudness != null)
                     {
-                        _AudioLoudness.Dispose(); ;
+                        _AudioLoudness.Dispose();
                         _AudioLoudness = null;
                     }
 
                     if (partsListIncoming != null)
                     {
-                        partsListIncoming.Dispose(); ;
+                        partsListIncoming.Dispose();
                         partsListIncoming = null;
                     }
 
                     if (partsListOutgoing != null)
                     {
-                        partsListOutgoing.Dispose(); ;
+                        partsListOutgoing.Dispose();
                         partsListOutgoing = null;
                     }
 
@@ -2955,7 +2922,10 @@ namespace VolumeManager
                         CCN.Dispose();
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+                }
                 CCN = null;
             }
         }
@@ -2970,22 +2940,22 @@ namespace VolumeManager
                 {
                     foreach (EventHandler _singleCast_ in _handler_.GetInvocationList())
                     {
-                        System.ComponentModel.ISynchronizeInvoke syncInvoke = _singleCast_.Target as System.ComponentModel.ISynchronizeInvoke;
-                        if ((syncInvoke != null) && (syncInvoke.InvokeRequired))
+                        if ((_singleCast_.Target is System.ComponentModel.ISynchronizeInvoke syncInvoke) && (syncInvoke.InvokeRequired))
                             syncInvoke.Invoke(_singleCast_, new object[] { this, new EventArgs() });
                         else
                             _singleCast_(this, new EventArgs());
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"exception:{ex.Message}");
+            }
         }
 
         private void GetAudioVolumeLevel()
         {
-            object _result_ = null;
-            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioVolumeLevel, out _result_);
+            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioVolumeLevel, out object _result_);
             if (_result_ != null)
             {
                 _AudioVolumeLevel = new C_AudioVolumeLevel(_result_ as IAudioVolumeLevel);
@@ -2996,8 +2966,7 @@ namespace VolumeManager
 
         private void GetAudioMute()
         {
-            object _result_ = null;
-            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioMute, out _result_);
+            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioMute, out object _result_);
             if (_result_ != null)
             {
                 _AudioMute = new C_AudioMute(_result_ as IAudioMute);
@@ -3008,8 +2977,7 @@ namespace VolumeManager
 
         private void GetAudioPeakMeter()
         {
-            object _result_ = null;
-            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioPeakMeter, out _result_);
+            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioPeakMeter, out object _result_);
             if (_result_ != null)
             {
                 _AudioPeakMeter = new C_AudioPeakMeter(_result_ as IAudioPeakMeter);
@@ -3020,8 +2988,7 @@ namespace VolumeManager
 
         private void GetAudioLoudness()
         {
-            object _result_ = null;
-            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioLoudness, out _result_);
+            _Part.Activate(E_CLSCTX.ALL, ref C_IIDs.IID_IAudioLoudness, out object _result_);
             if (_result_ != null)
             {
                 _AudioLoudness = new C_AudioLoudness(_result_ as IAudioLoudness);
@@ -3034,8 +3001,7 @@ namespace VolumeManager
         {
             get
             {
-                string _name_;
-                Marshal.ThrowExceptionForHR(_Part.GetName(out _name_));
+                Marshal.ThrowExceptionForHR(_Part.GetName(out string _name_));
                 return _name_;
             }
         }
@@ -3044,8 +3010,7 @@ namespace VolumeManager
         {
             get
             {
-                int _id_;
-                Marshal.ThrowExceptionForHR(_Part.GetLocalId(out _id_));
+                Marshal.ThrowExceptionForHR(_Part.GetLocalId(out int _id_));
                 return _id_;
             }
         }
@@ -3054,8 +3019,7 @@ namespace VolumeManager
         {
             get
             {
-                string _id_;
-                Marshal.ThrowExceptionForHR(_Part.GetGlobalId(out _id_));
+                Marshal.ThrowExceptionForHR(_Part.GetGlobalId(out string _id_));
                 return _id_;
             }
         }
@@ -3064,8 +3028,7 @@ namespace VolumeManager
         {
             get
             {
-                E_PartType _type_;
-                Marshal.ThrowExceptionForHR(_Part.GetPartType(out _type_));
+                Marshal.ThrowExceptionForHR(_Part.GetPartType(out E_PartType _type_));
                 return _type_;
             }
         }
@@ -3074,8 +3037,7 @@ namespace VolumeManager
         {
             get
             {
-                Guid _type_;
-                Marshal.ThrowExceptionForHR(_Part.GetSubType(out _type_));
+                Marshal.ThrowExceptionForHR(_Part.GetSubType(out Guid _type_));
                 return _type_;
             }
         }
@@ -3109,16 +3071,14 @@ namespace VolumeManager
         {
             get
             {
-                var _count_ = 0;
-                Marshal.ThrowExceptionForHR(_Part.GetControlInterfaceCount(out _count_));
+                Marshal.ThrowExceptionForHR(_Part.GetControlInterfaceCount(out int _count_));
                 return _count_;
             }
         }
 
         public C_ControlInterface GetControlInterface(int index)
         {
-            IControlInterface _controlInterface_;
-            Marshal.ThrowExceptionForHR(_Part.GetControlInterface(index, out _controlInterface_));
+            Marshal.ThrowExceptionForHR(_Part.GetControlInterface(index, out IControlInterface _controlInterface_));
             return new C_ControlInterface(_controlInterface_);
         }
 
@@ -3128,8 +3088,7 @@ namespace VolumeManager
             {
                 if (partsListIncoming == null)
                 {
-                    IPartsList _partsList_ = null;
-                    _Part.EnumPartsIncoming(out _partsList_);
+                    _Part.EnumPartsIncoming(out IPartsList _partsList_);
                     if (_partsList_ != null) partsListIncoming = new C_PartsList(_partsList_);
                 }
                 return partsListIncoming;
@@ -3142,8 +3101,7 @@ namespace VolumeManager
             {
                 if (partsListOutgoing == null)
                 {
-                    IPartsList _partsList_ = null;
-                    _Part.EnumPartsOutgoing(out _partsList_);
+                    _Part.EnumPartsOutgoing(out IPartsList _partsList_);
                     if (_partsList_ != null) partsListOutgoing = new C_PartsList(_partsList_);
                 }
                 return partsListOutgoing;
@@ -3154,8 +3112,7 @@ namespace VolumeManager
         {
             get
             {
-                IDeviceTopology _deviceTopology_;
-                Marshal.ThrowExceptionForHR(_Part.GetTopologyObject(out _deviceTopology_));
+                Marshal.ThrowExceptionForHR(_Part.GetTopologyObject(out IDeviceTopology _deviceTopology_));
                 return new C_DeviceTopology(_deviceTopology_);
             }
         }
@@ -3209,7 +3166,7 @@ namespace VolumeManager
     {
         private IPartsList _PartsList;
         private Dictionary<int, C_Part> _partsCache;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_PartsList(IPartsList partsList)
@@ -3259,8 +3216,7 @@ namespace VolumeManager
         {
             get
             {
-                var _count_ = 0;
-                Marshal.ThrowExceptionForHR(_PartsList.GetCount(out _count_));
+                Marshal.ThrowExceptionForHR(_PartsList.GetCount(out int _count_));
                 return _count_;
             }
         }
@@ -3273,8 +3229,7 @@ namespace VolumeManager
             }
             else
             {
-                IPart _ipart_;
-                Marshal.ThrowExceptionForHR(_PartsList.GetPart(index, out _ipart_));
+                Marshal.ThrowExceptionForHR(_PartsList.GetPart(index, out IPart _ipart_));
                 var _part_ = new C_Part(_ipart_);
                 _partsCache.Add(index, _part_);
                 return _part_;
@@ -3284,15 +3239,15 @@ namespace VolumeManager
 
     internal class C_ControlChangeNotify : IControlChangeNotify, IDisposable
     {
-        private C_Part _Parent;
-        private GCHandle rcwHandle;
-        private volatile bool _IsDisposed = false;
+        private readonly C_Part _Parent;
+        private readonly GCHandle _rcwHandle;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_ControlChangeNotify(C_Part parent)
         {
             _Parent = parent;
-            rcwHandle = GCHandle.Alloc(this, GCHandleType.Normal);
+            _rcwHandle = GCHandle.Alloc(this, GCHandleType.Normal);
         }
         ~C_ControlChangeNotify()
         {
@@ -3313,7 +3268,7 @@ namespace VolumeManager
                 {
                     _IsDisposed = true;
 
-                    if (rcwHandle.IsAllocated) rcwHandle.Free();
+                    if (_rcwHandle.IsAllocated) _rcwHandle.Free();
                 }
             }
         }
@@ -3321,7 +3276,7 @@ namespace VolumeManager
 
         public bool IsAllocated
         {
-            get { return rcwHandle.IsAllocated; }
+            get { return _rcwHandle.IsAllocated; }
         }
 
         [PreserveSig]
@@ -3336,7 +3291,7 @@ namespace VolumeManager
     public class C_Subunit : IDisposable
     {
         private ISubunit _Subunit;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_Subunit(ISubunit subunit)
@@ -3384,7 +3339,7 @@ namespace VolumeManager
     public class C_PerChannelDbLevel : IDisposable
     {
         private IPerChannelDbLevel _PerChannelDbLevel;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_PerChannelDbLevel(IPerChannelDbLevel perChannelDbLevel)
@@ -3423,8 +3378,7 @@ namespace VolumeManager
         {
             get
             {
-                uint _count_;
-                Marshal.ThrowExceptionForHR(_PerChannelDbLevel.GetChannelCount(out _count_));
+                Marshal.ThrowExceptionForHR(_PerChannelDbLevel.GetChannelCount(out uint _count_));
                 return (int)_count_;
             }
         }
@@ -3463,17 +3417,15 @@ namespace VolumeManager
 
         public void SetLevel(int channel, float level)
         {
-            Guid _eventContext_;
-            Marshal.ThrowExceptionForHR(_PerChannelDbLevel.SetLevel((uint)channel, level, out _eventContext_));
+            Marshal.ThrowExceptionForHR(_PerChannelDbLevel.SetLevel((uint)channel, level, out Guid _eventContext_));
         }
 
         public void SetLevelUniform(float level)
         {
-            Guid _eventContext_;
             System.Threading.Thread.Sleep(5);
             try
             {
-                Marshal.ThrowExceptionForHR(_PerChannelDbLevel.SetLevelUniform(level, out _eventContext_));
+                Marshal.ThrowExceptionForHR(_PerChannelDbLevel.SetLevelUniform(level, out Guid _eventContext_));
             }
             catch (Exception)
             {
@@ -3485,7 +3437,7 @@ namespace VolumeManager
     public class C_AudioMute : IDisposable
     {
         private IAudioMute _AudioMute;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioMute(IAudioMute audioMute)
@@ -3524,14 +3476,12 @@ namespace VolumeManager
         {
             get
             {
-                bool _muted_;
-                Marshal.ThrowExceptionForHR(_AudioMute.GetMute(out _muted_));
+                Marshal.ThrowExceptionForHR(_AudioMute.GetMute(out bool _muted_));
                 return _muted_;
             }
             set
             {
-                Guid _eventContext_;
-                Marshal.ThrowExceptionForHR(_AudioMute.SetMute(value, out _eventContext_));
+                Marshal.ThrowExceptionForHR(_AudioMute.SetMute(value, out Guid _eventContext_));
             }
         }
     }
@@ -3539,7 +3489,7 @@ namespace VolumeManager
     public class C_AudioPeakMeter : IDisposable
     {
         private IAudioPeakMeter _AudioPeakMeter;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioPeakMeter(IAudioPeakMeter audioPeakMeter)
@@ -3578,16 +3528,14 @@ namespace VolumeManager
         {
             get
             {
-                int _count_;
-                Marshal.ThrowExceptionForHR(_AudioPeakMeter.GetChannelCount(out _count_));
+                Marshal.ThrowExceptionForHR(_AudioPeakMeter.GetChannelCount(out int _count_));
                 return _count_;
             }
         }
 
         public float GetLevel(int channel)
         {
-            var _level_ = 0F;
-            Marshal.ThrowExceptionForHR(_AudioPeakMeter.GetLevel((uint)channel, out _level_));
+            Marshal.ThrowExceptionForHR(_AudioPeakMeter.GetLevel((uint)channel, out float _level_));
             return _level_;
         }
     }
@@ -3595,7 +3543,7 @@ namespace VolumeManager
     public class C_AudioLoudness : IDisposable
     {
         private IAudioLoudness _AudioLoudness;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_AudioLoudness(IAudioLoudness audioLoudness)
@@ -3634,14 +3582,12 @@ namespace VolumeManager
         {
             get
             {
-                bool _enabled_;
-                Marshal.ThrowExceptionForHR(_AudioLoudness.GetEnabled(out _enabled_));
+                Marshal.ThrowExceptionForHR(_AudioLoudness.GetEnabled(out bool _enabled_));
                 return _enabled_;
             }
             set
             {
-                Guid _eventContext_;
-                Marshal.ThrowExceptionForHR(_AudioLoudness.SetEnabled(value, out _eventContext_));
+                Marshal.ThrowExceptionForHR(_AudioLoudness.SetEnabled(value, out Guid _eventContext_));
             }
         }
     }
@@ -3649,7 +3595,7 @@ namespace VolumeManager
     public class C_ControlInterface : IDisposable
     {
         private IControlInterface _ControlInterface;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_ControlInterface(IControlInterface controlInterface)
@@ -3688,8 +3634,7 @@ namespace VolumeManager
         {
             get
             {
-                string _name_;
-                Marshal.ThrowExceptionForHR(_ControlInterface.GetName(out _name_));
+                Marshal.ThrowExceptionForHR(_ControlInterface.GetName(out string _name_));
                 return _name_;
             }
         }
@@ -3698,8 +3643,7 @@ namespace VolumeManager
         {
             get
             {
-                Guid _id_;
-                Marshal.ThrowExceptionForHR(_ControlInterface.GetID(out _id_));
+                Marshal.ThrowExceptionForHR(_ControlInterface.GetID(out Guid _id_));
                 return _id_;
             }
         }
@@ -3714,7 +3658,7 @@ namespace VolumeManager
         { }
 
         private IMMDeviceEnumerator _realEnumerator = new C_InternalMMDeviceEnumerator() as IMMDeviceEnumerator;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         public C_MMDeviceEnumerator()
@@ -3752,15 +3696,13 @@ namespace VolumeManager
 
         public C_MMDeviceCollection EnumerateAudioEndPoints(E_DataFlow dataFlow, E_DeviceState dwStateMask)
         {
-            IMMDeviceCollection _result_;
-            Marshal.ThrowExceptionForHR(_realEnumerator.EnumAudioEndpoints(dataFlow, dwStateMask, out _result_));
+            Marshal.ThrowExceptionForHR(_realEnumerator.EnumAudioEndpoints(dataFlow, dwStateMask, out IMMDeviceCollection _result_));
             return new C_MMDeviceCollection(_result_);
         }
 
         public C_MMDevice GetDefaultAudioEndpoint(E_DataFlow dataFlow, E_Role role)
         {
-            IMMDevice _Device_ = null;
-            Marshal.ThrowExceptionForHR(_realEnumerator.GetDefaultAudioEndpoint(dataFlow, role, out _Device_));
+            Marshal.ThrowExceptionForHR(_realEnumerator.GetDefaultAudioEndpoint(dataFlow, role, out IMMDevice _Device_));
             return new C_MMDevice(_Device_);
         }
 
@@ -3771,8 +3713,7 @@ namespace VolumeManager
 
         public C_MMDevice GetDevice(string ID)
         {
-            IMMDevice _Device_ = null;
-            Marshal.ThrowExceptionForHR(_realEnumerator.GetDevice(ID, out _Device_));
+            Marshal.ThrowExceptionForHR(_realEnumerator.GetDevice(ID, out IMMDevice _Device_));
             return new C_MMDevice(_Device_);
         }
     }
@@ -3780,7 +3721,7 @@ namespace VolumeManager
     public class C_MMDeviceCollection : IDisposable
     {
         private IMMDeviceCollection _MMDeviceCollection;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_MMDeviceCollection(IMMDeviceCollection parent)
@@ -3819,8 +3760,7 @@ namespace VolumeManager
         {
             get
             {
-                uint _result_;
-                Marshal.ThrowExceptionForHR(_MMDeviceCollection.GetCount(out _result_));
+                Marshal.ThrowExceptionForHR(_MMDeviceCollection.GetCount(out uint _result_));
                 return (int)_result_;
             }
         }
@@ -3829,8 +3769,7 @@ namespace VolumeManager
         {
             get
             {
-                IMMDevice _result_;
-                _MMDeviceCollection.Item((uint)index, out _result_);
+                _MMDeviceCollection.Item((uint)index, out IMMDevice _result_);
                 return new C_MMDevice(_result_);
             }
         }
@@ -3845,42 +3784,37 @@ namespace VolumeManager
         private C_AudioEndpointVolume _AudioEndpointVolume;
         private C_AudioSessionManager2 _AudioSessionManager2;
         private C_DeviceTopology _DeviceTopology;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
         #endregion
 
         #region Init
         private void GetPropertyInformation()
         {
-            IPropertyStore _propstore_;
-            Marshal.ThrowExceptionForHR(_RealDevice.OpenPropertyStore(E_StgmAccess.STGM_READ, out _propstore_));
+            Marshal.ThrowExceptionForHR(_RealDevice.OpenPropertyStore(E_StgmAccess.STGM_READ, out IPropertyStore _propstore_));
             _PropertyStore = new C_PropertyStore(_propstore_);
         }
 
         private void GetAudioSessionManager2()
         {
-            object _result_;
-            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioSessionManager2, E_CLSCTX.ALL, IntPtr.Zero, out _result_));
+            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioSessionManager2, E_CLSCTX.ALL, IntPtr.Zero, out object _result_));
             _AudioSessionManager2 = new C_AudioSessionManager2(_result_ as IAudioSessionManager2);
         }
 
         private void GetAudioMeterInformation()
         {
-            object _result_;
-            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioMeterInformation, E_CLSCTX.ALL, IntPtr.Zero, out _result_));
+            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioMeterInformation, E_CLSCTX.ALL, IntPtr.Zero, out object _result_));
             _AudioMeterInformation = new C_AudioMeterInformation(_result_ as IAudioMeterInformation);
         }
 
         private void GetAudioEndpointVolume()
         {
-            object _result_;
-            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioEndpointVolume, E_CLSCTX.ALL, IntPtr.Zero, out _result_));
+            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IAudioEndpointVolume, E_CLSCTX.ALL, IntPtr.Zero, out object _result_));
             _AudioEndpointVolume = new C_AudioEndpointVolume(_result_ as IAudioEndpointVolume);
         }
 
         private void GetDeviceTopology()
         {
-            object _result_;
-            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IDeviceTopology, E_CLSCTX.ALL, IntPtr.Zero, out _result_));
+            Marshal.ThrowExceptionForHR(_RealDevice.Activate(ref C_IIDs.IID_IDeviceTopology, E_CLSCTX.ALL, IntPtr.Zero, out object _result_));
             _DeviceTopology = new C_DeviceTopology(_result_ as IDeviceTopology);
         }
         #endregion
@@ -3938,8 +3872,8 @@ namespace VolumeManager
                 if (_PropertyStore == null) GetPropertyInformation();
                 if (_PropertyStore.Contains(C_PKEY.PKEY_DeviceInterface_FriendlyName))
                     return (string)_PropertyStore[C_PKEY.PKEY_DeviceInterface_FriendlyName].Value;
-                else
-                    return "Unknown";
+
+                return "Unknown";
             }
         }
 
@@ -3949,8 +3883,7 @@ namespace VolumeManager
             {
                 try
                 {
-                    string _Result_;
-                    Marshal.ThrowExceptionForHR(_RealDevice.GetId(out _Result_));
+                    Marshal.ThrowExceptionForHR(_RealDevice.GetId(out string _Result_));
                     return _Result_;
                 }
                 catch
@@ -3964,8 +3897,7 @@ namespace VolumeManager
         {
             get
             {
-                E_DataFlow _Result_;
-                (_RealDevice as IMMEndpoint).GetDataFlow(out _Result_);
+                (_RealDevice as IMMEndpoint).GetDataFlow(out E_DataFlow _Result_);
                 return _Result_;
             }
         }
@@ -3974,8 +3906,7 @@ namespace VolumeManager
         {
             get
             {
-                E_DeviceState _Result_;
-                Marshal.ThrowExceptionForHR(_RealDevice.GetState(out _Result_));
+                Marshal.ThrowExceptionForHR(_RealDevice.GetState(out E_DeviceState _Result_));
                 return _Result_;
             }
         }
@@ -4066,7 +3997,7 @@ namespace VolumeManager
     public class C_PropertyStore : IDisposable
     {
         private IPropertyStore _Store;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_PropertyStore(IPropertyStore store)
@@ -4106,8 +4037,7 @@ namespace VolumeManager
         {
             get
             {
-                int _Result_;
-                Marshal.ThrowExceptionForHR(_Store.GetCount(out _Result_));
+                Marshal.ThrowExceptionForHR(_Store.GetCount(out int _Result_));
                 return _Result_;
             }
         }
@@ -4116,9 +4046,8 @@ namespace VolumeManager
         {
             get
             {
-                S_PropVariant _result_;
                 var _key_ = Get(index);
-                Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out _result_));
+                Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out S_PropVariant _result_));
                 return new C_PropertyStoreProperty(_key_, _result_);
             }
         }
@@ -4138,13 +4067,12 @@ namespace VolumeManager
         {
             get
             {
-                S_PropVariant _result_;
                 for (var _i_ = 0; _i_ < Count; _i_++)
                 {
                     var _key_ = Get(_i_);
                     if (_key_.fmtid == testKey.fmtid && _key_.pid == testKey.pid)
                     {
-                        Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out _result_));
+                        Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out S_PropVariant _result_));
                         return new C_PropertyStoreProperty(_key_, _result_);
                     }
                 }
@@ -4154,16 +4082,14 @@ namespace VolumeManager
 
         public S_PropertyKey Get(int index)
         {
-            S_PropertyKey _key_;
-            Marshal.ThrowExceptionForHR(_Store.GetAt(index, out _key_));
+            Marshal.ThrowExceptionForHR(_Store.GetAt(index, out S_PropertyKey _key_));
             return _key_;
         }
 
         public S_PropVariant GetValue(int index)
         {
-            S_PropVariant _result_;
             var _key_ = Get(index);
-            Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out _result_));
+            Marshal.ThrowExceptionForHR(_Store.GetValue(ref _key_, out S_PropVariant _result_));
             return _result_;
         }
     }
@@ -4172,7 +4098,7 @@ namespace VolumeManager
     {
         private S_PropertyKey _PropertyKey;
         private S_PropVariant _PropValue;
-        private volatile bool _IsDisposed = false;
+        private volatile bool _IsDisposed;
 
         #region Constructor/Destructor/Dispose
         internal C_PropertyStoreProperty(S_PropertyKey key, S_PropVariant value)
